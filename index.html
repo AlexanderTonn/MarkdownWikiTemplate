@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Wiki Tool</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1 data-i18n="appTitle">Markdown Wiki Tool</h1>
+          <p data-i18n="appSubtitle">WYSIWYG Editor mit Markdown als Speicherformat</p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="tab-btn icon-nav is-active" data-view-target="wiki" title="Wiki">🏠</button>
+          <button type="button" class="tab-btn icon-nav" data-view-target="settings" title="Settings">⚙</button>
+          <button type="button" class="tab-btn flag-btn" id="langSwitchBtn">🇩🇪</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="view view-wiki is-active" data-view="wiki">
+          <aside class="sidebar">
+            <div class="section-header">
+              <h2 data-i18n="sidebarPages">Seiten</h2>
+              <button type="button" id="sidebarToggleBtn" class="icon-btn" title="Toggle Sidebar">⟨</button>
+            </div>
+            <div id="pageTree" class="page-tree"></div>
+            <input id="importFileInput" type="file" accept=".md,text/markdown" hidden />
+          </aside>
+
+          <section class="editor-pane">
+            <div class="editor-toolbar" id="toolbar">
+              <button type="button" data-cmd="h1" title="Heading 1">H1</button>
+              <button type="button" data-cmd="h2" title="Heading 2">H2</button>
+              <button type="button" data-cmd="bold" title="Bold"><strong>B</strong></button>
+              <button type="button" data-cmd="italic" title="Italic"><em>I</em></button>
+              <button type="button" data-cmd="strike" title="Strike"><s>S</s></button>
+              <button type="button" data-cmd="code" title="Inline Code">&lt;/&gt;</button>
+              <button type="button" data-cmd="bulletList" title="Bullet List">•≡</button>
+              <button type="button" data-cmd="orderedList" title="Ordered List">1≡</button>
+              <button type="button" data-cmd="blockquote" title="Quote">❝</button>
+              <select id="codeLangSelect" class="toolbar-select" title="Code Language">
+                <option value="text">text</option>
+                <option value="bash">bash</option>
+                <option value="shell">shell</option>
+                <option value="javascript">js</option>
+                <option value="typescript">ts</option>
+                <option value="python">py</option>
+                <option value="cpp">cpp</option>
+                <option value="json">json</option>
+                <option value="html">html</option>
+                <option value="css">css</option>
+              </select>
+              <button type="button" data-action="insertCodeBlock" title="Insert Code Block">⌘</button>
+              <button type="button" data-action="insertTable" title="Insert Table">▦</button>
+              <button type="button" data-cmd="hr" title="Horizontal Line">―</button>
+              <button type="button" data-cmd="undo" title="Undo">↶</button>
+              <button type="button" data-cmd="redo" title="Redo">↷</button>
+              <span class="toolbar-sep" aria-hidden="true"></span>
+              <button type="button" data-action="newPage" title="Neue Seite">＋</button>
+              <button type="button" data-action="renamePage" title="Umbenennen">✎</button>
+              <button type="button" data-action="deletePage" title="Loeschen">🗑</button>
+              <button type="button" data-action="editMarkdown" title="Markdown bearbeiten">Ⓜ</button>
+              <button type="button" data-action="importMarkdown" title="Markdown importieren">⤓</button>
+              <button type="button" data-action="exportMarkdown" title="Markdown exportieren">⤒</button>
+              <button type="button" data-action="savePage" title="Speichern">💾</button>
+            </div>
+
+            <div id="editor" class="editor-surface" aria-label="Markdown Editor"></div>
+
+            <footer class="editor-footer">
+              <div id="statusText">Bereit</div>
+            </footer>
+          </section>
+        </section>
+
+        <section class="view view-settings" data-view="settings">
+          <div class="settings-grid">
+            <label>
+              <span data-i18n="setAppTitle">App Titel</span>
+              <input type="text" id="appTitleInput" />
+            </label>
+            <label>
+              <span data-i18n="setAppSubtitle">App Untertitel</span>
+              <input type="text" id="appSubtitleInput" />
+            </label>
+            <label>
+              <span data-i18n="setBg">Hintergrund</span>
+              <input type="color" id="bgColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setBgMode">Hintergrundmodus</span>
+              <select id="bgModeInput">
+                <option value="solid">Solid</option>
+                <option value="gradient">Gradient</option>
+              </select>
+            </label>
+            <label id="bgColor2Wrap">
+              <span data-i18n="setBg2">Gradient Farbe 2</span>
+              <input type="color" id="bgColor2Input" />
+            </label>
+            <label>
+              <span data-i18n="setPanel">Panel</span>
+              <input type="color" id="panelColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setText">Textfarbe</span>
+              <input type="color" id="textColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setAccent">Akzentfarbe</span>
+              <input type="color" id="accentColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setEditorBg">Editor-Hintergrund</span>
+              <input type="color" id="editorBgInput" />
+            </label>
+            <label>
+              <span data-i18n="setFontFamily">Schriftart</span>
+              <input type="text" id="fontFamilyInput" placeholder="z.B. Georgia, serif" />
+            </label>
+            <label>
+              <span><span data-i18n="setFontSize">Schriftgroesse</span> (<span id="fontSizeLabel">17</span>px)</span>
+              <input type="range" id="fontSizeInput" min="13" max="24" step="1" />
+            </label>
+            <label>
+              <span><span data-i18n="setScale">Skalierung</span> (<span id="uiScaleLabel">100</span>%)</span>
+              <input type="range" id="uiScaleInput" min="80" max="140" step="5" />
+            </label>
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" id="resetSettingsBtn" data-i18n="setReset">Standard wiederherstellen</button>
+          </div>
+
+          <p class="settings-note" data-i18n="settingsNote">
+            Hinweis: GitHub Pages kann Markdown-Dateien lesen, aber nicht direkt zurueckschreiben.
+            Aenderungen bleiben lokal im Browser und koennen als .md exportiert werden.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <section id="markdownModal" class="markdown-modal" hidden>
+      <div class="markdown-modal-card">
+        <h3 data-i18n="mdEditorTitle">Markdown bearbeiten</h3>
+        <textarea id="markdownTextarea" spellcheck="false"></textarea>
+        <div class="markdown-modal-actions">
+          <button type="button" id="mdCancelBtn" data-i18n="cancel">Abbrechen</button>
+          <button type="button" id="mdApplyBtn" data-i18n="apply">Uebernehmen</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

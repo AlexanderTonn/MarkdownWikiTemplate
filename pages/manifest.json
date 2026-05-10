@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "start",
+    "title": "Start",
+    "file": "start.md"
+  },
+  {
+    "slug": "syntax-tipps",
+    "title": "Syntax Tipps",
+    "file": "guides/syntax-tipps.md"
+  },
+  {
+    "slug": "einstellungen",
+    "title": "Einstellungen",
+    "file": "guides/customizing/einstellungen.md"
+  }
+]
