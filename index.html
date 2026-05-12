@@ -16,6 +16,7 @@
         <div class="topbar-actions">
           <button type="button" class="tab-btn icon-nav is-active" data-view-target="wiki" title="Wiki">🏠</button>
           <button type="button" class="tab-btn icon-nav" data-view-target="settings" title="Settings">⚙</button>
+          <button type="button" class="tab-btn icon-nav" id="themeToggleBtn" title="Darkmode">🌙</button>
           <button type="button" class="tab-btn flag-btn" id="langSwitchBtn">🇩🇪</button>
         </div>
       </header>
@@ -33,6 +34,8 @@
 
           <section class="editor-pane">
             <div class="editor-toolbar" id="toolbar">
+              <button type="button" data-action="enableEditing" class="edit-enable-btn" data-i18n="actEnableEdit">Bearbeiten</button>
+              <span class="toolbar-sep" aria-hidden="true"></span>
               <button type="button" data-cmd="h1" title="Heading 1">H1</button>
               <button type="button" data-cmd="h2" title="Heading 2">H2</button>
               <button type="button" data-cmd="bold" title="Bold"><strong>B</strong></button>
@@ -42,18 +45,6 @@
               <button type="button" data-cmd="bulletList" title="Bullet List">•≡</button>
               <button type="button" data-cmd="orderedList" title="Ordered List">1≡</button>
               <button type="button" data-cmd="blockquote" title="Quote">❝</button>
-              <select id="codeLangSelect" class="toolbar-select" title="Code Language">
-                <option value="text">text</option>
-                <option value="bash">bash</option>
-                <option value="shell">shell</option>
-                <option value="javascript">js</option>
-                <option value="typescript">ts</option>
-                <option value="python">py</option>
-                <option value="cpp">cpp</option>
-                <option value="json">json</option>
-                <option value="html">html</option>
-                <option value="css">css</option>
-              </select>
               <button type="button" data-action="insertCodeBlock" title="Insert Code Block">⌘</button>
               <button type="button" data-action="insertTable" title="Insert Table">▦</button>
               <button type="button" data-cmd="hr" title="Horizontal Line">―</button>
@@ -66,6 +57,7 @@
               <button type="button" data-action="editMarkdown" title="Markdown bearbeiten">Ⓜ</button>
               <button type="button" data-action="importMarkdown" title="Markdown importieren">⤓</button>
               <button type="button" data-action="exportMarkdown" title="Markdown exportieren">⤒</button>
+              <button type="button" data-action="printPage" title="Drucken / PDF">🖨</button>
               <button type="button" data-action="savePage" title="Speichern">💾</button>
             </div>
 
@@ -75,6 +67,14 @@
               <div id="statusText">Bereit</div>
             </footer>
           </section>
+
+          <aside class="toc-panel">
+            <div class="section-header">
+              <h2 data-i18n="sidebarToc">Inhalt</h2>
+              <button type="button" id="tocToggleBtn" class="icon-btn" title="Toggle TOC">⟩</button>
+            </div>
+            <nav id="tocList" class="toc-list"></nav>
+          </aside>
         </section>
 
         <section class="view view-settings" data-view="settings">
@@ -88,8 +88,46 @@
               <input type="text" id="appSubtitleInput" />
             </label>
             <label>
+              <span data-i18n="setThemeMode">Theme Modus</span>
+              <select id="themeModeInput">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="setPaletteTarget">Farbset bearbeiten</span>
+              <select id="paletteTargetInput">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="setAutoSaveEnabled">Auto Save aktiv</span>
+              <input type="checkbox" id="autoSaveEnabledInput" />
+            </label>
+            <label>
+              <span data-i18n="setAutoSaveMin">Auto Save Intervall (Minuten)</span>
+              <input type="number" id="autoSaveMinutesInput" min="0.25" max="30" step="0.25" />
+            </label>
+            <label>
               <span data-i18n="setBg">Hintergrund</span>
               <input type="color" id="bgColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setMuted">Sekundaer Text</span>
+              <input type="color" id="mutedColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setBorder">Rahmenfarbe</span>
+              <input type="color" id="borderColorInput" />
+            </label>
+            <label>
+              <span data-i18n="setControlBg">Button Hintergrund</span>
+              <input type="color" id="controlBgInput" />
+            </label>
+            <label>
+              <span data-i18n="setControlText">Button Text</span>
+              <input type="color" id="controlTextInput" />
             </label>
             <label>
               <span data-i18n="setBgMode">Hintergrundmodus</span>
@@ -117,6 +155,46 @@
             <label>
               <span data-i18n="setEditorBg">Editor-Hintergrund</span>
               <input type="color" id="editorBgInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeBg">Code Hintergrund</span>
+              <input type="color" id="codeBgInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodePlain">Code Text</span>
+              <input type="color" id="codePlainInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeKw">Code Keywords</span>
+              <input type="color" id="codeKwInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeType">Code Typen</span>
+              <input type="color" id="codeTypeInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeVar">Code Variablen</span>
+              <input type="color" id="codeVarInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeFn">Code Funktionen</span>
+              <input type="color" id="codeFnInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeStr">Code Strings</span>
+              <input type="color" id="codeStrInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeNum">Code Zahlen</span>
+              <input type="color" id="codeNumInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeCom">Code Kommentare</span>
+              <input type="color" id="codeComInput" />
+            </label>
+            <label>
+              <span data-i18n="setCodeOp">Code Operatoren</span>
+              <input type="color" id="codeOpInput" />
             </label>
             <label>
               <span data-i18n="setFontFamily">Schriftart</span>

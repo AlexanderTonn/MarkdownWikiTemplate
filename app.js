@@ -5,23 +5,96 @@ const STORAGE_KEYS = {
   settings: 'mwiki.settings.v1',
   language: 'mwiki.language.v1',
   folderOpen: 'mwiki.folderOpen.v1',
-  sidebarCollapsed: 'mwiki.sidebarCollapsed.v1'
+  sidebarCollapsed: 'mwiki.sidebarCollapsed.v1',
+  tocCollapsed: 'mwiki.tocCollapsed.v1'
 };
 
-const DEFAULT_SETTINGS = {
-  appTitle: '',
-  appSubtitle: '',
+const DEFAULT_LIGHT_PALETTE = {
   bg: '#f4f4f0',
   bg2: '#fdf6e3',
   bgMode: 'gradient',
   panel: '#ffffff',
   text: '#1f2328',
+  muted: '#5b6470',
+  border: '#cfd8e3',
   accent: '#0f766e',
   editorBg: '#fffdf8',
+  controlBg: '#ffffff',
+  controlText: '#1f2328',
+  codeBg: '#0f172a',
+  codePlain: '#e2e8f0',
+  codeKw: '#22d3ee',
+  codeType: '#c084fc',
+  codeVar: '#f8fafc',
+  codeFn: '#60a5fa',
+  codeStr: '#f59e0b',
+  codeNum: '#93c5fd',
+  codeCom: '#94a3b8',
+  codeOp: '#fda4af'
+};
+
+const DEFAULT_DARK_PALETTE = {
+  bg: '#0b1220',
+  bg2: '#162338',
+  bgMode: 'gradient',
+  panel: '#111b2f',
+  text: '#f3f7ff',
+  muted: '#b9c5dc',
+  border: '#334766',
+  accent: '#22d3ee',
+  editorBg: '#0b1422',
+  controlBg: '#1c2a42',
+  controlText: '#f8fbff',
+  codeBg: '#020617',
+  codePlain: '#e2e8f0',
+  codeKw: '#67e8f9',
+  codeType: '#d8b4fe',
+  codeVar: '#f8fafc',
+  codeFn: '#93c5fd',
+  codeStr: '#fbbf24',
+  codeNum: '#7dd3fc',
+  codeCom: '#94a3b8',
+  codeOp: '#fda4af'
+};
+
+const DEFAULT_SETTINGS = {
+  appTitle: '',
+  appSubtitle: '',
+  themeMode: 'light',
+  paletteTarget: 'light',
+  palettes: {
+    light: { ...DEFAULT_LIGHT_PALETTE },
+    dark: { ...DEFAULT_DARK_PALETTE }
+  },
+  autoSaveEnabled: true,
+  autoSaveMinutes: 2,
   fontFamily: 'Georgia, Times New Roman, serif',
   fontSize: 17,
   uiScale: 100
 };
+
+const CODE_LANGUAGES = [
+  { value: 'text', label: 'text' },
+  { value: 'bash', label: 'bash' },
+  { value: 'shell', label: 'shell' },
+  { value: 'javascript', label: 'js' },
+  { value: 'typescript', label: 'ts' },
+  { value: 'python', label: 'py' },
+  { value: 'cpp', label: 'cpp' },
+  { value: 'json', label: 'json' },
+  { value: 'html', label: 'html' },
+  { value: 'css', label: 'css' }
+];
+
+function makeDefaultSettings() {
+  return {
+    ...DEFAULT_SETTINGS,
+    palettes: {
+      light: { ...DEFAULT_LIGHT_PALETTE },
+      dark: { ...DEFAULT_DARK_PALETTE }
+    }
+  };
+}
 
 const FALLBACK_PAGES = {
   start: {
@@ -38,7 +111,7 @@ const FALLBACK_PAGES = {
   }
 };
 
-const I18N = {
+const FALLBACK_I18N = {
   de: {
     appTitle: 'Markdown Wiki Tool',
     appSubtitle: 'WYSIWYG Editor mit Markdown als Speicherformat',
@@ -56,7 +129,27 @@ const I18N = {
     actImport: 'Import',
     actExport: 'Export',
     actSave: 'Speichern',
+    setThemeMode: 'Theme Modus',
+    setPaletteTarget: 'Farbset bearbeiten',
+    themeLight: 'Hell',
+    themeDark: 'Dunkel',
+    setAutoSaveEnabled: 'Auto Save aktiv',
+    setAutoSaveMin: 'Auto Save Intervall (Minuten)',
     setBg: 'Hintergrund',
+    setMuted: 'Sekundaer Text',
+    setBorder: 'Rahmenfarbe',
+    setControlBg: 'Button Hintergrund',
+    setControlText: 'Button Text',
+    setCodeBg: 'Code Hintergrund',
+    setCodePlain: 'Code Text',
+    setCodeKw: 'Code Keywords',
+    setCodeType: 'Code Typen',
+    setCodeVar: 'Code Variablen',
+    setCodeFn: 'Code Funktionen',
+    setCodeStr: 'Code Strings',
+    setCodeNum: 'Code Zahlen',
+    setCodeCom: 'Code Kommentare',
+    setCodeOp: 'Code Operatoren',
     setAppTitle: 'App Titel',
     setAppSubtitle: 'App Untertitel',
     setBgMode: 'Hintergrundmodus',
@@ -89,11 +182,26 @@ const I18N = {
     statusNeedEditor: 'Editor noch nicht bereit.',
     statusMinOne: 'Mindestens eine Seite muss bleiben.',
     statusSettingsReset: 'Einstellungen zurueckgesetzt.',
+    statusThemeSwitched: 'Theme gewechselt: {mode}',
+    statusAutoSaved: 'Automatisch gespeichert',
+    statusOfflineEditor: 'Offline-Editor aktiv',
+    statusPrintBlocked: 'Druckfenster blockiert. Popups erlauben.',
+    statusPrinting: 'Druckansicht geoeffnet',
     promptPageTitle: 'Seitentitel:',
     promptPageDefault: 'Neue Seite',
     promptFolder: 'Ordner (optional, z.B. docs/api):',
     promptRename: 'Neuer Seitentitel:',
-    confirmDelete: 'Seite wirklich loeschen?\n\n{title}'
+    confirmDelete: 'Seite wirklich loeschen?\n\n{title}',
+    sidebarToc: 'Inhalt',
+    tocEmpty: 'Keine Ueberschriften',
+    tocEmptyPrint: 'Keine Ueberschriften vorhanden.',
+    codeLanguageLabel: 'Sprache',
+    promptRows: 'Anzahl Zeilen:',
+    promptCols: 'Anzahl Spalten:',
+    actEnableEdit: 'Bearbeiten',
+    statusReadOnly: 'Nur Ansicht. Klicke auf "Bearbeiten", um Aenderungen zu erlauben.',
+    statusEditUnlocked: 'Bearbeitungsmodus aktiviert',
+    statusI18nLoadFail: 'Sprachdateien nicht vollstaendig geladen. Fallback aktiv.'
   },
   en: {
     appTitle: 'Markdown Wiki Tool',
@@ -112,7 +220,27 @@ const I18N = {
     actImport: 'Import',
     actExport: 'Export',
     actSave: 'Save',
+    setThemeMode: 'Theme mode',
+    setPaletteTarget: 'Edit palette',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    setAutoSaveEnabled: 'Auto save enabled',
+    setAutoSaveMin: 'Auto save interval (minutes)',
     setBg: 'Background',
+    setMuted: 'Secondary text',
+    setBorder: 'Border color',
+    setControlBg: 'Button background',
+    setControlText: 'Button text',
+    setCodeBg: 'Code background',
+    setCodePlain: 'Code text',
+    setCodeKw: 'Code keywords',
+    setCodeType: 'Code types',
+    setCodeVar: 'Code variables',
+    setCodeFn: 'Code functions',
+    setCodeStr: 'Code strings',
+    setCodeNum: 'Code numbers',
+    setCodeCom: 'Code comments',
+    setCodeOp: 'Code operators',
     setAppTitle: 'App title',
     setAppSubtitle: 'App subtitle',
     setBgMode: 'Background mode',
@@ -145,13 +273,30 @@ const I18N = {
     statusNeedEditor: 'Editor not ready yet.',
     statusMinOne: 'At least one page must remain.',
     statusSettingsReset: 'Settings reset.',
+    statusThemeSwitched: 'Theme switched: {mode}',
+    statusAutoSaved: 'Auto saved',
+    statusOfflineEditor: 'Offline editor active',
+    statusPrintBlocked: 'Print window blocked. Allow popups.',
+    statusPrinting: 'Print preview opened',
     promptPageTitle: 'Page title:',
     promptPageDefault: 'New Page',
     promptFolder: 'Folder (optional, e.g. docs/api):',
     promptRename: 'New page title:',
-    confirmDelete: 'Delete this page?\n\n{title}'
+    confirmDelete: 'Delete this page?\n\n{title}',
+    sidebarToc: 'Contents',
+    tocEmpty: 'No headings',
+    tocEmptyPrint: 'No headings available.',
+    codeLanguageLabel: 'Language',
+    promptRows: 'Number of rows:',
+    promptCols: 'Number of columns:',
+    actEnableEdit: 'Edit',
+    statusReadOnly: 'Read-only view. Click "Edit" to allow changes.',
+    statusEditUnlocked: 'Edit mode enabled',
+    statusI18nLoadFail: 'Language files could not be fully loaded. Fallback active.'
   }
 };
+
+let I18N = JSON.parse(JSON.stringify(FALLBACK_I18N));
 
 const dom = {
   appTitleText: document.querySelector('[data-i18n=\"appTitle\"]'),
@@ -164,10 +309,19 @@ const dom = {
   views: Array.from(document.querySelectorAll('[data-view]')),
   i18nNodes: Array.from(document.querySelectorAll('[data-i18n]')),
   langSwitchBtn: document.querySelector('#langSwitchBtn'),
+  themeToggleBtn: document.querySelector('#themeToggleBtn'),
   sidebarToggleBtn: document.querySelector('#sidebarToggleBtn'),
   appTitleInput: document.querySelector('#appTitleInput'),
   appSubtitleInput: document.querySelector('#appSubtitleInput'),
+  themeModeInput: document.querySelector('#themeModeInput'),
+  paletteTargetInput: document.querySelector('#paletteTargetInput'),
+  autoSaveEnabledInput: document.querySelector('#autoSaveEnabledInput'),
+  autoSaveMinutesInput: document.querySelector('#autoSaveMinutesInput'),
   bgColorInput: document.querySelector('#bgColorInput'),
+  mutedColorInput: document.querySelector('#mutedColorInput'),
+  borderColorInput: document.querySelector('#borderColorInput'),
+  controlBgInput: document.querySelector('#controlBgInput'),
+  controlTextInput: document.querySelector('#controlTextInput'),
   bgModeInput: document.querySelector('#bgModeInput'),
   bgColor2Input: document.querySelector('#bgColor2Input'),
   bgColor2Wrap: document.querySelector('#bgColor2Wrap'),
@@ -175,6 +329,16 @@ const dom = {
   textColorInput: document.querySelector('#textColorInput'),
   accentColorInput: document.querySelector('#accentColorInput'),
   editorBgInput: document.querySelector('#editorBgInput'),
+  codeBgInput: document.querySelector('#codeBgInput'),
+  codePlainInput: document.querySelector('#codePlainInput'),
+  codeKwInput: document.querySelector('#codeKwInput'),
+  codeTypeInput: document.querySelector('#codeTypeInput'),
+  codeVarInput: document.querySelector('#codeVarInput'),
+  codeFnInput: document.querySelector('#codeFnInput'),
+  codeStrInput: document.querySelector('#codeStrInput'),
+  codeNumInput: document.querySelector('#codeNumInput'),
+  codeComInput: document.querySelector('#codeComInput'),
+  codeOpInput: document.querySelector('#codeOpInput'),
   fontFamilyInput: document.querySelector('#fontFamilyInput'),
   fontSizeInput: document.querySelector('#fontSizeInput'),
   fontSizeLabel: document.querySelector('#fontSizeLabel'),
@@ -186,19 +350,29 @@ const dom = {
   markdownTextarea: document.querySelector('#markdownTextarea'),
   mdApplyBtn: document.querySelector('#mdApplyBtn'),
   mdCancelBtn: document.querySelector('#mdCancelBtn'),
-  codeLangSelect: document.querySelector('#codeLangSelect'),
-  wikiView: document.querySelector('.view-wiki')
+  wikiView: document.querySelector('.view-wiki'),
+  tocToggleBtn: document.querySelector('#tocToggleBtn'),
+  tocList: document.querySelector('#tocList')
 };
 
 const state = {
   pages: {},
   activeSlug: null,
-  settings: { ...DEFAULT_SETTINGS },
+  settings: makeDefaultSettings(),
   language: 'de',
+  languageOrder: ['de', 'en'],
+  languageMeta: {
+    de: { name: 'Deutsch', flag: '🇩🇪' },
+    en: { name: 'English', flag: '🇺🇸' }
+  },
   folderOpen: {},
   sidebarCollapsed: false,
+  tocCollapsed: false,
   editor: null,
-  fallbackRichEditor: null
+  fallbackRichEditor: null,
+  autoSaveTimer: null,
+  hasUnsavedChanges: false,
+  editUnlocked: false
 };
 
 function str(key, vars = {}) {
@@ -301,6 +475,31 @@ function savePages() {
   localStorage.setItem(STORAGE_KEYS.activeSlug, state.activeSlug || '');
 }
 
+function markUnsavedChanges() {
+  state.hasUnsavedChanges = true;
+}
+
+function clearAutoSaveTimer() {
+  if (state.autoSaveTimer) {
+    clearInterval(state.autoSaveTimer);
+    state.autoSaveTimer = null;
+  }
+}
+
+function restartAutoSave() {
+  clearAutoSaveTimer();
+  if (!state.settings.autoSaveEnabled) return;
+  const minutes = Math.max(0.25, Number(state.settings.autoSaveMinutes) || 2);
+  const intervalMs = Math.round(minutes * 60 * 1000);
+
+  state.autoSaveTimer = setInterval(() => {
+    if (!state.hasUnsavedChanges) return;
+    savePages();
+    state.hasUnsavedChanges = false;
+    setStatus(str('statusAutoSaved'));
+  }, intervalMs);
+}
+
 function loadLocalPages() {
   const readRaw = () => {
     const current = localStorage.getItem(STORAGE_KEYS.pages);
@@ -327,14 +526,52 @@ function loadLocalPages() {
 }
 
 async function loadBundledPages() {
+  const collectManifestEntries = (node, prefix = '') => {
+    const out = [];
+    if (!node) return out;
+
+    if (typeof node === 'string') {
+      out.push({ file: `${prefix}${node}` });
+      return out;
+    }
+
+    if (Array.isArray(node)) {
+      for (const item of node) out.push(...collectManifestEntries(item, prefix));
+      return out;
+    }
+
+    if (typeof node === 'object') {
+      const folderPrefix = node.folder ? `${prefix}${String(node.folder).replace(/^\/+|\/+$/g, '')}/` : prefix;
+      if (node.file) {
+        out.push({
+          slug: node.slug,
+          title: node.title,
+          file: `${folderPrefix}${String(node.file)}`
+        });
+      }
+      if (node.entries) out.push(...collectManifestEntries(node.entries, folderPrefix));
+      if (node.children) out.push(...collectManifestEntries(node.children, folderPrefix));
+      if (node.pages) out.push(...collectManifestEntries(node.pages, folderPrefix));
+      if (!node.file && !node.entries && !node.children && !node.pages) {
+        for (const [key, value] of Object.entries(node)) {
+          if (['slug', 'title', 'folder'].includes(key)) continue;
+          out.push(...collectManifestEntries(value, folderPrefix));
+        }
+      }
+    }
+
+    return out;
+  };
+
   try {
     const manifestRes = await fetch('./pages/manifest.json', { cache: 'no-store' });
     if (!manifestRes.ok) return null;
     const manifest = await manifestRes.json();
-    if (!Array.isArray(manifest)) return null;
+    const manifestItems = collectManifestEntries(manifest).filter((item) => item && item.file);
+    if (manifestItems.length === 0) return null;
 
     const entries = await Promise.all(
-      manifest.map(async (item) => {
+      manifestItems.map(async (item) => {
         const filePath = String(item.file || '').replace(/^\/+/, '');
         if (!filePath) return null;
         const res = await fetch(`./pages/${filePath}`, { cache: 'no-store' });
@@ -364,15 +601,89 @@ async function loadBundledPages() {
   }
 }
 
+function mergePagesByFilePath(bundledPages, localPages) {
+  const byFile = new Map();
+
+  const upsert = (slug, page, source) => {
+    if (!page || typeof page !== 'object') return;
+    const safeFile = String(page.filePath || `${slug || 'page'}.md`).replace(/^\/+/, '');
+    const title = String(page.title || slug || 'page');
+    const markdown = typeof page.markdown === 'string' ? page.markdown : `# ${title}\n\n`;
+    const safeSlug = slugify(slug || title || safeFile) || 'page';
+    byFile.set(safeFile, {
+      slug: safeSlug,
+      filePath: safeFile,
+      title,
+      markdown,
+      source
+    });
+  };
+
+  for (const [slug, page] of Object.entries(bundledPages || {})) upsert(slug, page, 'bundled');
+  for (const [slug, page] of Object.entries(localPages || {})) upsert(slug, page, 'local');
+
+  const merged = {};
+  for (const item of byFile.values()) {
+    const nextSlug = makeUniqueSlug(item.slug || slugify(item.title) || 'page', merged);
+    merged[nextSlug] = normalizePageRecord(nextSlug, item);
+  }
+  return merged;
+}
+
 function loadSettings() {
+  const normalize = (raw) => {
+    const base = makeDefaultSettings();
+
+    if (!raw || typeof raw !== 'object') return base;
+
+    // Migration from old flat format
+    const hasLegacyPalette =
+      typeof raw.bg === 'string' ||
+      typeof raw.panel === 'string' ||
+      typeof raw.text === 'string' ||
+      typeof raw.accent === 'string' ||
+      typeof raw.editorBg === 'string';
+
+    if (hasLegacyPalette) {
+      base.palettes.light = {
+        ...base.palettes.light,
+        bg: raw.bg || DEFAULT_LIGHT_PALETTE.bg,
+        bg2: raw.bg2 || DEFAULT_LIGHT_PALETTE.bg2,
+        bgMode: raw.bgMode === 'solid' ? 'solid' : 'gradient',
+        panel: raw.panel || DEFAULT_LIGHT_PALETTE.panel,
+        text: raw.text || DEFAULT_LIGHT_PALETTE.text,
+        accent: raw.accent || DEFAULT_LIGHT_PALETTE.accent,
+        editorBg: raw.editorBg || DEFAULT_LIGHT_PALETTE.editorBg
+      };
+    }
+
+    if (raw.palettes && typeof raw.palettes === 'object') {
+      const light = raw.palettes.light || {};
+      const dark = raw.palettes.dark || {};
+      base.palettes.light = { ...base.palettes.light, ...light };
+      base.palettes.dark = { ...base.palettes.dark, ...dark };
+    }
+
+    base.appTitle = typeof raw.appTitle === 'string' ? raw.appTitle : base.appTitle;
+    base.appSubtitle = typeof raw.appSubtitle === 'string' ? raw.appSubtitle : base.appSubtitle;
+    base.themeMode = raw.themeMode === 'dark' ? 'dark' : 'light';
+    base.paletteTarget = raw.paletteTarget === 'dark' ? 'dark' : 'light';
+    base.autoSaveEnabled = raw.autoSaveEnabled !== false;
+    base.autoSaveMinutes = Math.max(0.25, Math.min(30, Number(raw.autoSaveMinutes) || 2));
+    base.fontFamily = typeof raw.fontFamily === 'string' ? raw.fontFamily : base.fontFamily;
+    base.fontSize = Number(raw.fontSize) || base.fontSize;
+    base.uiScale = Number(raw.uiScale) || base.uiScale;
+    return base;
+  };
+
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.settings);
-    if (!raw) return { ...DEFAULT_SETTINGS };
+    if (!raw) return normalize(null);
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return normalize(parsed);
   } catch (error) {
     console.error(error);
-    return { ...DEFAULT_SETTINGS };
+    return normalize(null);
   }
 }
 
@@ -381,8 +692,85 @@ function saveSettings() {
 }
 
 function loadLanguage() {
-  const lang = localStorage.getItem(STORAGE_KEYS.language);
-  return lang === 'en' ? 'en' : 'de';
+  const lang = (localStorage.getItem(STORAGE_KEYS.language) || '').trim();
+  return lang || 'de';
+}
+
+function defaultLanguageManifest() {
+  return [
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪', file: 'de.json' },
+    { code: 'en', name: 'English', flag: '🇺🇸', file: 'en.json' }
+  ];
+}
+
+function normalizeLangManifestEntry(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  const code = String(entry.code || '').trim().toLowerCase();
+  const file = String(entry.file || '').trim();
+  if (!code || !file) return null;
+  return {
+    code,
+    file,
+    name: String(entry.name || code),
+    flag: String(entry.flag || '🌐')
+  };
+}
+
+async function loadLanguageResources() {
+  let manifest = defaultLanguageManifest();
+  let hadFailure = false;
+
+  try {
+    const res = await fetch('./i18n/manifest.json', { cache: 'no-store' });
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed)) {
+        const normalized = parsed.map(normalizeLangManifestEntry).filter(Boolean);
+        if (normalized.length > 0) manifest = normalized;
+      }
+    }
+  } catch (error) {
+    hadFailure = true;
+    console.warn('Language manifest load failed:', error);
+  }
+
+  const loaded = {};
+  const meta = {};
+
+  for (const item of manifest) {
+    try {
+      const res = await fetch(`./i18n/${item.file}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const parsed = await res.json();
+      if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON format');
+
+      const translations = parsed.translations && typeof parsed.translations === 'object' ? parsed.translations : parsed;
+      loaded[item.code] = translations;
+      meta[item.code] = {
+        name: String(parsed.name || item.name || item.code),
+        flag: String(parsed.flag || item.flag || '🌐')
+      };
+    } catch (error) {
+      hadFailure = true;
+      console.warn(`Language file failed: ${item.code}`, error);
+    }
+  }
+
+  for (const [code, texts] of Object.entries(FALLBACK_I18N)) {
+    if (!loaded[code]) loaded[code] = { ...texts };
+    else loaded[code] = { ...texts, ...loaded[code] };
+    if (!meta[code]) {
+      const d = defaultLanguageManifest().find((m) => m.code === code);
+      meta[code] = { name: d?.name || code, flag: d?.flag || '🌐' };
+    }
+  }
+
+  I18N = loaded;
+  state.languageMeta = meta;
+  state.languageOrder = Object.keys(loaded).sort((a, b) => a.localeCompare(b));
+  if (!state.languageOrder.includes('de') && loaded.de) state.languageOrder.unshift('de');
+  if (!state.languageOrder.includes('en') && loaded.en) state.languageOrder.push('en');
+  return { hadFailure };
 }
 
 function saveLanguage() {
@@ -413,41 +801,87 @@ function saveSidebarCollapsed() {
   localStorage.setItem(STORAGE_KEYS.sidebarCollapsed, state.sidebarCollapsed ? '1' : '0');
 }
 
+function loadTocCollapsed() {
+  return localStorage.getItem(STORAGE_KEYS.tocCollapsed) === '1';
+}
+
+function saveTocCollapsed() {
+  localStorage.setItem(STORAGE_KEYS.tocCollapsed, state.tocCollapsed ? '1' : '0');
+}
+
+function getPalette(mode = state.settings.themeMode) {
+  return mode === 'dark' ? state.settings.palettes.dark : state.settings.palettes.light;
+}
+
 function applySettings() {
   const root = document.documentElement;
-  root.style.setProperty('--bg', state.settings.bg);
-  root.style.setProperty('--bg2', state.settings.bg2);
-  root.style.setProperty('--panel', state.settings.panel);
-  root.style.setProperty('--text', state.settings.text);
-  root.style.setProperty('--accent', state.settings.accent);
-  root.style.setProperty('--editor-bg', state.settings.editorBg);
+  const palette = getPalette();
+  root.style.setProperty('--bg', palette.bg);
+  root.style.setProperty('--bg2', palette.bg2);
+  root.style.setProperty('--panel', palette.panel);
+  root.style.setProperty('--text', palette.text);
+  root.style.setProperty('--muted', palette.muted);
+  root.style.setProperty('--border', palette.border);
+  root.style.setProperty('--accent', palette.accent);
+  root.style.setProperty('--editor-bg', palette.editorBg);
+  root.style.setProperty('--control-bg', palette.controlBg);
+  root.style.setProperty('--control-text', palette.controlText);
+  root.style.setProperty('--code-bg', palette.codeBg);
+  root.style.setProperty('--code-plain', palette.codePlain);
+  root.style.setProperty('--code-kw', palette.codeKw);
+  root.style.setProperty('--code-type', palette.codeType);
+  root.style.setProperty('--code-var', palette.codeVar);
+  root.style.setProperty('--code-fn', palette.codeFn);
+  root.style.setProperty('--code-str', palette.codeStr);
+  root.style.setProperty('--code-num', palette.codeNum);
+  root.style.setProperty('--code-com', palette.codeCom);
+  root.style.setProperty('--code-op', palette.codeOp);
   root.style.setProperty('--font-family', state.settings.fontFamily);
   root.style.setProperty('--font-size-base', `${state.settings.fontSize}px`);
   root.style.setProperty('--ui-scale', String(state.settings.uiScale / 100));
 
   const bodyBg =
-    state.settings.bgMode === 'solid'
-      ? state.settings.bg
-      : `linear-gradient(135deg, ${state.settings.bg} 0%, ${state.settings.bg2} 100%)`;
+    palette.bgMode === 'solid'
+      ? palette.bg
+      : `linear-gradient(135deg, ${palette.bg} 0%, ${palette.bg2} 100%)`;
   root.style.setProperty('--body-bg', bodyBg);
 }
 
 function syncSettingsInputs() {
+  const editPalette = getPalette(state.settings.paletteTarget);
   dom.appTitleInput.value = state.settings.appTitle;
   dom.appSubtitleInput.value = state.settings.appSubtitle;
-  dom.bgColorInput.value = state.settings.bg;
-  dom.bgModeInput.value = state.settings.bgMode;
-  dom.bgColor2Input.value = state.settings.bg2;
-  dom.panelColorInput.value = state.settings.panel;
-  dom.textColorInput.value = state.settings.text;
-  dom.accentColorInput.value = state.settings.accent;
-  dom.editorBgInput.value = state.settings.editorBg;
+  dom.themeModeInput.value = state.settings.themeMode;
+  dom.paletteTargetInput.value = state.settings.paletteTarget;
+  dom.autoSaveEnabledInput.checked = Boolean(state.settings.autoSaveEnabled);
+  dom.autoSaveMinutesInput.value = String(state.settings.autoSaveMinutes);
+  dom.bgColorInput.value = editPalette.bg;
+  dom.mutedColorInput.value = editPalette.muted;
+  dom.borderColorInput.value = editPalette.border;
+  dom.controlBgInput.value = editPalette.controlBg;
+  dom.controlTextInput.value = editPalette.controlText;
+  dom.bgModeInput.value = editPalette.bgMode;
+  dom.bgColor2Input.value = editPalette.bg2;
+  dom.panelColorInput.value = editPalette.panel;
+  dom.textColorInput.value = editPalette.text;
+  dom.accentColorInput.value = editPalette.accent;
+  dom.editorBgInput.value = editPalette.editorBg;
+  dom.codeBgInput.value = editPalette.codeBg;
+  dom.codePlainInput.value = editPalette.codePlain;
+  dom.codeKwInput.value = editPalette.codeKw;
+  dom.codeTypeInput.value = editPalette.codeType;
+  dom.codeVarInput.value = editPalette.codeVar;
+  dom.codeFnInput.value = editPalette.codeFn;
+  dom.codeStrInput.value = editPalette.codeStr;
+  dom.codeNumInput.value = editPalette.codeNum;
+  dom.codeComInput.value = editPalette.codeCom;
+  dom.codeOpInput.value = editPalette.codeOp;
   dom.fontFamilyInput.value = state.settings.fontFamily;
   dom.fontSizeInput.value = String(state.settings.fontSize);
   dom.fontSizeLabel.textContent = String(state.settings.fontSize);
   dom.uiScaleInput.value = String(state.settings.uiScale);
   dom.uiScaleLabel.textContent = String(state.settings.uiScale);
-  dom.bgColor2Wrap.style.display = state.settings.bgMode === 'gradient' ? '' : 'none';
+  dom.bgColor2Wrap.style.display = editPalette.bgMode === 'gradient' ? '' : 'none';
 }
 
 function applyBranding() {
@@ -465,20 +899,74 @@ function applyLanguage() {
     node.textContent = str(key);
   }
 
-  dom.langSwitchBtn.textContent = state.language === 'de' ? '🇩🇪' : '🇺🇸';
-  dom.langSwitchBtn.title = state.language === 'de' ? 'Sprache wechseln' : 'Switch language';
+  const currentLangMeta = state.languageMeta[state.language] || { flag: '🌐', name: state.language };
+  dom.langSwitchBtn.textContent = currentLangMeta.flag;
+  dom.langSwitchBtn.title = currentLangMeta.name;
+  dom.themeToggleBtn.textContent = state.settings.themeMode === 'dark' ? '☀' : '🌙';
+  dom.themeToggleBtn.title = state.settings.themeMode === 'dark' ? 'Light mode' : 'Dark mode';
   dom.sidebarToggleBtn.title = state.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  dom.themeModeInput.options[0].textContent = str('themeLight');
+  dom.themeModeInput.options[1].textContent = str('themeDark');
+  dom.paletteTargetInput.options[0].textContent = str('themeLight');
+  dom.paletteTargetInput.options[1].textContent = str('themeDark');
   applyBranding();
 
   if (state.activeSlug && state.pages[state.activeSlug]) {
     setStatus(str('statusLoadedPage', { title: state.pages[state.activeSlug].title }));
   }
+  updateToolbarState();
+  renderToc();
 }
 
 function applySidebarState() {
   dom.wikiView.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
   dom.sidebarToggleBtn.textContent = state.sidebarCollapsed ? '⟩' : '⟨';
   dom.sidebarToggleBtn.title = state.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+}
+
+function applyTocState() {
+  dom.wikiView.classList.toggle('toc-collapsed', state.tocCollapsed);
+  dom.tocToggleBtn.textContent = state.tocCollapsed ? '⟨' : '⟩';
+  dom.tocToggleBtn.title = state.tocCollapsed ? 'Expand TOC' : 'Collapse TOC';
+}
+
+function setEditorEditable(editable) {
+  if (state.editor && typeof state.editor.setEditable === 'function') {
+    state.editor.setEditable(Boolean(editable));
+  }
+  if (state.fallbackRichEditor) {
+    state.fallbackRichEditor.contentEditable = editable ? 'true' : 'false';
+    state.fallbackRichEditor.spellcheck = Boolean(editable);
+    state.fallbackRichEditor.querySelectorAll('.code-widget-input').forEach((el) => {
+      el.readOnly = !editable;
+    });
+    state.fallbackRichEditor.querySelectorAll('.code-lang-picker').forEach((el) => {
+      el.disabled = !editable;
+    });
+  }
+  document.body.classList.toggle('editor-locked', !editable);
+}
+
+function applyEditingLockState() {
+  setEditorEditable(state.editUnlocked);
+  updateToolbarState();
+}
+
+function lockPageEditing() {
+  state.editUnlocked = false;
+  applyEditingLockState();
+}
+
+function unlockPageEditing() {
+  state.editUnlocked = true;
+  applyEditingLockState();
+  setStatus(str('statusEditUnlocked'));
+}
+
+function ensureEditMode() {
+  if (state.editUnlocked) return true;
+  setStatus(str('statusReadOnly'));
+  return false;
 }
 
 function switchView(targetView) {
@@ -581,13 +1069,478 @@ function renderPageTree() {
   dom.pageTree.appendChild(renderFolder(buildTree(), true));
 }
 
+function getRenderedEditorRoot() {
+  if (state.editor) {
+    return dom.editorHost.querySelector('.ProseMirror');
+  }
+  return state.fallbackRichEditor;
+}
+
+function collectTocEntries() {
+  const root = getRenderedEditorRoot();
+  if (!root) return [];
+
+  const headings = Array.from(root.querySelectorAll('h1, h2, h3, h4'));
+  const usedIds = new Set();
+  const entries = [];
+
+  for (const heading of headings) {
+    const rawText = (heading.textContent || '').trim();
+    if (!rawText) continue;
+    const level = Number(heading.tagName.slice(1)) || 1;
+    let base = slugify(rawText) || 'section';
+    let id = base;
+    let idx = 2;
+    while (usedIds.has(id)) {
+      id = `${base}-${idx}`;
+      idx += 1;
+    }
+    usedIds.add(id);
+    heading.id = id;
+    entries.push({ id, level, text: rawText });
+  }
+
+  return entries;
+}
+
+function renderToc() {
+  const entries = collectTocEntries();
+  dom.tocList.innerHTML = '';
+
+  if (entries.length === 0) {
+    const empty = document.createElement('div');
+    empty.textContent = str('tocEmpty');
+    empty.style.color = 'var(--muted)';
+    dom.tocList.appendChild(empty);
+    return;
+  }
+
+  for (const entry of entries) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `toc-item level-${Math.min(4, Math.max(1, entry.level))}`;
+    btn.textContent = entry.text;
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(entry.id);
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      dom.tocList.querySelectorAll('.toc-item').forEach((el) => el.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+    dom.tocList.appendChild(btn);
+  }
+}
+
+function languageLabel(value) {
+  const found = CODE_LANGUAGES.find((item) => item.value === value);
+  return found ? found.label : value;
+}
+
+function buildPrintTocHtml(entries) {
+  if (!entries || entries.length === 0) {
+    return `<p>${escapeHtml(str('tocEmptyPrint'))}</p>`;
+  }
+
+  const rows = entries
+    .map((entry) => {
+      const level = Math.max(1, Math.min(6, entry.level));
+      const indent = (level - 1) * 18;
+      return `<li style="margin-left:${indent}px"><a href="#${entry.id}">${escapeHtml(entry.text)}</a></li>`;
+    })
+    .join('');
+  return `<ul class="print-toc-list">${rows}</ul>`;
+}
+
+function convertCodeWidgetsForPrint(root) {
+  root.querySelectorAll('.code-block-widget').forEach((widget) => {
+    const lang = normalizeCodeLanguage(widget.querySelector('.code-lang-picker')?.value || widget.dataset.lang || 'text');
+    const previewCode = widget.querySelector('.code-widget-preview code');
+    const rawText = widget.querySelector('.code-widget-input')?.value || '';
+    const rendered = previewCode?.innerHTML || highlightEscapedCode(escapeHtml(rawText), lang);
+
+    const container = document.createElement('figure');
+    container.className = 'print-code-figure';
+
+    const caption = document.createElement('figcaption');
+    caption.className = 'print-code-caption';
+    caption.textContent = `${str('codeLanguageLabel')}: ${languageLabel(lang)}`;
+
+    const pre = document.createElement('pre');
+    pre.className = 'print-code';
+    const code = document.createElement('code');
+    code.className = `language-${lang}`;
+    code.innerHTML = rendered;
+    pre.appendChild(code);
+
+    container.appendChild(caption);
+    container.appendChild(pre);
+    widget.replaceWith(container);
+  });
+}
+
+function printCurrentPage() {
+  const root = getRenderedEditorRoot();
+  const page = state.pages[state.activeSlug];
+  if (!root || !page) return;
+
+  const entries = collectTocEntries();
+  const contentClone = root.cloneNode(true);
+  convertCodeWidgetsForPrint(contentClone);
+
+  const tocTitle = str('sidebarToc');
+  const docTitle = page.title;
+  const printHtml = `<!doctype html>
+<html lang="${state.language}">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(docTitle)}</title>
+  <style>
+    @page { margin: 14mm 16mm 18mm 16mm; }
+    body {
+      font-family: ${JSON.stringify(state.settings.fontFamily)};
+      color: ${getPalette().text};
+      background: #fff;
+      line-height: 1.45;
+      font-size: ${state.settings.fontSize}px;
+      margin: 0;
+      counter-reset: page;
+    }
+    .print-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 4mm;
+      text-align: center;
+      font-size: 11px;
+      color: #475569;
+    }
+    .print-footer::after { content: counter(page); }
+    h1,h2,h3,h4 { break-after: avoid-page; }
+    p,li,blockquote,pre,table,figure { break-inside: avoid; }
+    .print-toc-page { break-after: page; }
+    .print-toc-list { list-style: none; padding: 0; margin: 0; }
+    .print-toc-list li { margin: 0.2rem 0; }
+    .print-toc-list a { color: #0b57d0; text-decoration: none; }
+    .print-content a { color: #0b57d0; }
+    .print-code-figure { margin: 1rem 0; }
+    .print-code-caption { color: #475569; font-size: 0.9em; margin-bottom: 0.25rem; }
+    .print-code {
+      background: ${getPalette().codeBg};
+      color: ${getPalette().codePlain};
+      border-radius: 8px;
+      padding: 0.75rem;
+      overflow: auto;
+      border: 1px solid #cbd5e1;
+      white-space: pre-wrap;
+    }
+    .tok-com,.tok-comment { color: ${getPalette().codeCom}; }
+    .tok-str,.tok-string { color: ${getPalette().codeStr}; }
+    .tok-num,.tok-number { color: ${getPalette().codeNum}; }
+    .tok-kw { color: ${getPalette().codeKw}; font-weight: 600; }
+    .tok-type { color: ${getPalette().codeType}; font-weight: 600; }
+    .tok-var { color: ${getPalette().codeVar}; }
+    .tok-fn { color: ${getPalette().codeFn}; }
+    .tok-op { color: ${getPalette().codeOp}; font-weight: 600; }
+    table { border-collapse: collapse; width: 100%; }
+    td,th { border: 1px solid #cbd5e1; padding: 0.35rem 0.45rem; }
+    blockquote { border-left: 3px solid #94a3b8; padding-left: 0.8rem; color: #334155; margin-left: 0; }
+  </style>
+</head>
+<body>
+  <section class="print-toc-page">
+    <h1>${escapeHtml(tocTitle)}</h1>
+    ${buildPrintTocHtml(entries)}
+  </section>
+  <article class="print-content">
+    <h1>${escapeHtml(docTitle)}</h1>
+    ${contentClone.innerHTML}
+  </article>
+  <div class="print-footer"></div>
+</body>
+</html>`;
+
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.position = 'fixed';
+  frame.style.right = '0';
+  frame.style.bottom = '0';
+  frame.style.width = '0';
+  frame.style.height = '0';
+  frame.style.border = '0';
+  frame.style.visibility = 'hidden';
+  document.body.appendChild(frame);
+
+  const cleanup = () => {
+    setTimeout(() => frame.remove(), 200);
+  };
+
+  try {
+    const printWin = frame.contentWindow;
+    if (!printWin) throw new Error('No print window');
+    let printed = false;
+
+    printWin.document.open();
+    printWin.document.write(printHtml);
+    printWin.document.close();
+
+    const runPrint = () => {
+      if (printed) return;
+      printed = true;
+      try {
+        printWin.focus();
+        printWin.print();
+        setStatus(str('statusPrinting'));
+      } catch (error) {
+        console.error(error);
+        setStatus(str('statusPrintBlocked'));
+      }
+    };
+
+    frame.onload = () => {
+      runPrint();
+    };
+    setTimeout(runPrint, 220);
+    printWin.addEventListener('afterprint', cleanup, { once: true });
+    setTimeout(cleanup, 60000);
+  } catch (error) {
+    console.error(error);
+    cleanup();
+    setStatus(str('statusPrintBlocked'));
+  }
+}
+
+function normalizeCodeLanguage(language) {
+  const raw = String(language || 'text').toLowerCase();
+  return CODE_LANGUAGES.some((item) => item.value === raw) ? raw : 'text';
+}
+
+function codeLanguageOptionsHtml(selected) {
+  const active = normalizeCodeLanguage(selected);
+  return CODE_LANGUAGES.map((item) => `<option value="${item.value}"${item.value === active ? ' selected' : ''}>${item.label}</option>`).join('');
+}
+
 function escapeHtml(text) {
   return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/>/g, '&gt;');
+}
+
+function highlightEscapedCode(escapedCode, language) {
+  const lang = normalizeCodeLanguage(language);
+  let html = String(escapedCode || '');
+  const chunks = [];
+  const markerBase = 0xe000;
+  const markerLimit = 0xf8ff;
+  const rawFallback = [];
+  const stashToken = (content) => {
+    if (markerBase + chunks.length <= markerLimit) {
+      const idx = chunks.push(content) - 1;
+      return String.fromCharCode(markerBase + idx);
+    }
+    const idx = rawFallback.push(content) - 1;
+    return `@@TOK${idx}@@`;
+  };
+  const stash = (content, cls) => stashToken(`<span class="tok-${cls}">${content}</span>`);
+  const stashRaw = (content) => stashToken(content);
+
+  const tokenReplace = (regex, cls) => {
+    html = html.replace(regex, (full) => stash(full, cls));
+  };
+
+  const tokenReplaceGroup = (regex, cls, group = 1) => {
+    html = html.replace(regex, (...args) => {
+      const full = args[0];
+      const match = args[group];
+      if (!match) return full;
+      return full.replace(match, stash(match, cls));
+    });
+  };
+
+  const tokenReplaceWordList = (words, cls) => {
+    if (!words || words.length === 0) return;
+    const safe = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    html = html.replace(new RegExp(`\\b(${safe})\\b`, 'g'), (full) => stash(full, cls));
+  };
+
+  // Protect escaped entities like &amp; / &lt; / &gt; before operator highlighting.
+  html = html.replace(/&(?:#\d+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]+);/g, (full) => stashRaw(full));
+
+  if (lang === 'json') {
+    html = html.replace(/"(?:\\.|[^"\\])*"(?=\s*:)/g, (full) => stash(full, 'var'));
+  }
+
+  if (lang === 'shell' || lang === 'bash' || lang === 'python') {
+    html = html.replace(/(^|[\n\r])([ \t]*#.*$)/gm, (full, p1, p2) => `${p1}${stash(p2, 'comment')}`);
+  } else if (lang === 'html') {
+    tokenReplace(/&lt;!--[\s\S]*?--&gt;/g, 'comment');
+  } else if (lang === 'css') {
+    tokenReplace(/\/\*[\s\S]*?\*\//g, 'comment');
+  } else {
+    tokenReplace(/\/\/[^\n\r]*/g, 'comment');
+    tokenReplace(/\/\*[\s\S]*?\*\//g, 'comment');
+  }
+
+  tokenReplace(/`(?:\\.|[^`\\])*`/g, 'string');
+  tokenReplace(/"(?:\\.|[^"\\])*"/g, 'string');
+  tokenReplace(/'(?:\\.|[^'\\])*'/g, 'string');
+
+  const keywordMap = {
+    javascript: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'new', 'async', 'await', 'import', 'from', 'export', 'try', 'catch', 'switch', 'case', 'break', 'continue', 'throw'],
+    typescript: ['type', 'interface', 'implements', 'extends', 'public', 'private', 'protected', 'readonly', 'const', 'let', 'var', 'function', 'return', 'if', 'else', 'class', 'new', 'async', 'await', 'import', 'from', 'export', 'try', 'catch', 'enum'],
+    python: ['def', 'class', 'return', 'if', 'elif', 'else', 'for', 'while', 'import', 'from', 'as', 'try', 'except', 'with', 'lambda', 'pass', 'None', 'True', 'False', 'yield', 'raise'],
+    cpp: ['class', 'struct', 'return', 'if', 'else', 'for', 'while', 'switch', 'case', 'namespace', 'using', 'public', 'private', 'protected', 'include', 'template', 'typename', 'constexpr', 'auto'],
+    shell: ['if', 'then', 'else', 'fi', 'for', 'do', 'done', 'case', 'esac', 'function', 'export', 'in'],
+    bash: ['if', 'then', 'else', 'fi', 'for', 'do', 'done', 'case', 'esac', 'function', 'export', 'in'],
+    json: ['true', 'false', 'null'],
+    html: ['doctype'],
+    css: ['@media', '@keyframes', '@supports']
+  };
+
+  const typeMap = {
+    javascript: ['Array', 'Object', 'Map', 'Set', 'Promise', 'Date', 'RegExp', 'Error'],
+    typescript: ['string', 'number', 'boolean', 'unknown', 'never', 'void', 'any', 'Record', 'Partial', 'Readonly', 'Pick', 'Omit'],
+    python: ['int', 'float', 'str', 'bool', 'list', 'dict', 'tuple', 'set'],
+    cpp: ['int', 'double', 'float', 'bool', 'void', 'char', 'long', 'short', 'unsigned', 'size_t', 'std', 'string'],
+    shell: [],
+    bash: [],
+    json: [],
+    html: [],
+    css: []
+  };
+
+  tokenReplaceWordList(keywordMap[lang] || [], 'kw');
+  tokenReplaceWordList(typeMap[lang] || [], 'type');
+
+  if (lang === 'html') {
+    html = html.replace(/(&lt;\/?)([a-zA-Z][a-zA-Z0-9:-]*)/g, (full, p1, p2) => `${p1}${stash(p2, 'kw')}`);
+    html = html.replace(/\b([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?==)/g, (full) => stash(full, 'type'));
+  }
+
+  if (lang === 'css') {
+    tokenReplaceGroup(/(^|[{};\n\r]\s*)([.#]?[a-zA-Z_-][a-zA-Z0-9_:-]*)(?=\s*\{)/gm, 'var', 2);
+    tokenReplaceGroup(/(^|[;\n\r]\s*)([a-z-]+)(?=\s*:)/gm, 'type', 2);
+  }
+
+  if (lang === 'javascript' || lang === 'typescript' || lang === 'cpp') {
+    tokenReplaceGroup(/\b(?:const|let|var|auto|int|double|float|bool|char|long|short|unsigned|string)\s+([A-Za-z_][\w$]*)/g, 'var', 1);
+  }
+
+  if (lang === 'python') {
+    tokenReplaceGroup(/\bdef\s+([A-Za-z_]\w*)/g, 'fn', 1);
+    tokenReplaceGroup(/\b([A-Za-z_]\w*)(?=\s*=)/g, 'var', 1);
+  }
+
+  if (lang === 'shell' || lang === 'bash') {
+    tokenReplace(/\$[A-Za-z_]\w*/g, 'var');
+    tokenReplaceGroup(/(^|[\n\r]\s*)([A-Za-z_][\w-]*)(?=[ \t])/g, 'fn', 2);
+    tokenReplaceGroup(/\b([A-Za-z_]\w*)(?==)/g, 'var', 1);
+  }
+
+  if (lang === 'json') {
+    tokenReplaceGroup(/(^|[{\[,]\s*)([A-Za-z_][\w-]*)(?=\s*:)/g, 'var', 2);
+  }
+
+  if (lang !== 'python' && lang !== 'shell' && lang !== 'bash') {
+    tokenReplaceGroup(/\b(?:function|def|fn)\s+([A-Za-z_][\w$]*)/g, 'fn', 1);
+  }
+
+  tokenReplaceGroup(/\b([A-Za-z_][\w$]*)(?=\s*\()/g, 'fn', 1);
+  tokenReplace(/\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b/g, 'number');
+  tokenReplace(/(\+\+|--|=>|===|!==|==|!=|<=|>=|&&|\|\||[=+\-*/%<>!&|^~?:])/g, 'op');
+
+  html = Array.from(html)
+    .map((ch) => {
+      const code = ch.charCodeAt(0);
+      if (code >= markerBase && code < markerBase + chunks.length) {
+        return chunks[code - markerBase];
+      }
+      return ch;
+    })
+    .join('');
+
+  return html.replace(/@@TOK(\d+)@@/g, (full, idx) => rawFallback[Number(idx)] || '');
+}
+
+function renderCodeWidgetPreview(widget) {
+  const select = widget.querySelector('.code-lang-picker');
+  const input = widget.querySelector('.code-widget-input');
+  const code = widget.querySelector('.code-widget-preview code');
+  if (!select || !input || !code) return;
+
+  const lang = normalizeCodeLanguage(select.value);
+  widget.dataset.lang = lang;
+  select.value = lang;
+  code.className = `language-${lang}`;
+  code.innerHTML = highlightEscapedCode(escapeHtml(input.value || ''), lang);
+}
+
+function createCodeWidgetHtml(text, language = 'text') {
+  const lang = normalizeCodeLanguage(language);
+  const encoded = encodeURIComponent(text || '');
+  return [
+    `<div class="code-block-widget" contenteditable="false" data-lang="${lang}" data-code="${encoded}">`,
+    `<div class="code-widget-head">`,
+    `<span class="code-widget-label">Lang</span>`,
+    `<select class="code-lang-picker">${codeLanguageOptionsHtml(lang)}</select>`,
+    `</div>`,
+    `<div class="code-widget-editor-wrap">`,
+    `<pre class="code-widget-preview"><code class="language-${lang}"></code></pre>`,
+    `<textarea class="code-widget-input" spellcheck="false"></textarea>`,
+    `</div>`,
+    `</div>`
+  ].join('');
+}
+
+function bindCodeWidgets(root) {
+  if (!root) return;
+  const widgets = root.querySelectorAll('.code-block-widget');
+  widgets.forEach((widget) => {
+    const select = widget.querySelector('.code-lang-picker');
+    const input = widget.querySelector('.code-widget-input');
+    if (!select || !input) return;
+    if (!input.value && widget.dataset.code) {
+      try {
+        input.value = decodeURIComponent(widget.dataset.code);
+      } catch (error) {
+        input.value = widget.dataset.code;
+      }
+    }
+    renderCodeWidgetPreview(widget);
+    if (widget.dataset.bound === '1') return;
+    widget.dataset.bound = '1';
+
+    select.addEventListener('change', () => {
+      if (!state.editUnlocked) {
+        applyEditingLockState();
+        return;
+      }
+      renderCodeWidgetPreview(widget);
+      const page = state.pages[state.activeSlug];
+      if (!page || !state.fallbackRichEditor) return;
+      page.markdown = fallbackHtmlToMarkdown(state.fallbackRichEditor);
+      markUnsavedChanges();
+      setStatus(str('statusChangedPage', { title: page.title }));
+    });
+
+    input.addEventListener('input', () => {
+      if (!state.editUnlocked) return;
+      renderCodeWidgetPreview(widget);
+      const page = state.pages[state.activeSlug];
+      if (!page || !state.fallbackRichEditor) return;
+      page.markdown = fallbackHtmlToMarkdown(state.fallbackRichEditor);
+      markUnsavedChanges();
+      setStatus(str('statusChangedPage', { title: page.title }));
+    });
+
+    input.addEventListener('scroll', () => {
+      const preview = widget.querySelector('.code-widget-preview');
+      if (!preview) return;
+      preview.scrollTop = input.scrollTop;
+      preview.scrollLeft = input.scrollLeft;
+    });
+  });
+  applyEditingLockState();
 }
 
 function parseInlineMarkdown(text) {
@@ -626,8 +1579,7 @@ function markdownToHtml(markdown) {
         codeLang = fenceMatch[1] || '';
         codeLines = [];
       } else {
-        const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : '';
-        html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+        html.push(createCodeWidgetHtml(codeLines.join('\n'), codeLang || 'text'));
         inCode = false;
         codeLang = '';
         codeLines = [];
@@ -735,8 +1687,7 @@ function markdownToHtml(markdown) {
 
   closeList();
   if (inCode) {
-    const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : '';
-    html.push(`<pre><code${langClass}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+    html.push(createCodeWidgetHtml(codeLines.join('\n'), codeLang || 'text'));
   }
   return html.join('');
 }
@@ -798,6 +1749,14 @@ function blockNodeToMarkdown(node) {
     return `\`\`\`${language}\n${text}\n\`\`\`\n\n`;
   }
 
+  if (tag === 'div' && node.classList.contains('code-block-widget')) {
+    const select = node.querySelector('.code-lang-picker');
+    const input = node.querySelector('.code-widget-input');
+    const language = normalizeCodeLanguage(select?.value || node.dataset.lang || 'text');
+    const text = input?.value || '';
+    return `\`\`\`${language}\n${text}\n\`\`\`\n\n`;
+  }
+
   if (tag === 'hr') return '---\n\n';
 
   if (tag === 'table') {
@@ -851,10 +1810,12 @@ function setEditorContentFromMarkdown(markdown, emitUpdate = false) {
 }
 
 function setPageMarkdown(markdown, emitStatus = false) {
+  if (!state.editUnlocked) return;
   const page = state.pages[state.activeSlug];
   if (!page) return;
 
   page.markdown = markdown;
+  markUnsavedChanges();
 
   if (state.editor) {
     setEditorContentFromMarkdown(markdown, false);
@@ -862,11 +1823,13 @@ function setPageMarkdown(markdown, emitStatus = false) {
 
   if (state.fallbackRichEditor) {
     state.fallbackRichEditor.innerHTML = markdownToHtml(markdown);
+    bindCodeWidgets(state.fallbackRichEditor);
   }
 
   if (emitStatus) {
     setStatus(str('statusChangedPage', { title: page.title }));
   }
+  renderToc();
 }
 
 function loadActivePageIntoEditor() {
@@ -879,18 +1842,26 @@ function loadActivePageIntoEditor() {
 
   if (state.fallbackRichEditor) {
     state.fallbackRichEditor.innerHTML = markdownToHtml(page.markdown);
+    bindCodeWidgets(state.fallbackRichEditor);
   }
 
+  lockPageEditing();
   updateToolbarState();
-  setStatus(str('statusLoadedPage', { title: page.title }));
+  setStatus(`${str('statusLoadedPage', { title: page.title })} · ${str('statusReadOnly')}`);
+  renderToc();
 }
 
 function saveActivePage() {
+  if (!state.editUnlocked) {
+    setStatus(str('statusReadOnly'));
+    return;
+  }
   const page = state.pages[state.activeSlug];
   if (!page) return;
 
   page.markdown = editorMarkdown();
   savePages();
+  state.hasUnsavedChanges = false;
   setStatus(str('statusSavedPage', { title: page.title }));
 }
 
@@ -983,6 +1954,7 @@ function deleteCurrentPage() {
 }
 
 function openMarkdownModal() {
+  if (!ensureEditMode()) return;
   const page = state.pages[state.activeSlug];
   if (!page) return;
   dom.markdownTextarea.value = editorMarkdown();
@@ -1014,11 +1986,13 @@ function focusFallbackEditor() {
 }
 
 function fallbackInsertHtml(html) {
+  if (!state.editUnlocked) return;
   if (!focusFallbackEditor()) return;
   document.execCommand('insertHTML', false, html);
 }
 
 function fallbackInsertText(text) {
+  if (!state.editUnlocked) return;
   if (!focusFallbackEditor()) return;
   document.execCommand('insertText', false, text);
 }
@@ -1046,6 +2020,7 @@ function closestFallbackBlock(editor, node) {
 }
 
 function applyFallbackMarkdownShortcut(editor) {
+  if (!state.editUnlocked) return;
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
   const block = closestFallbackBlock(editor, sel.anchorNode);
@@ -1089,12 +2064,12 @@ function applyFallbackMarkdownShortcut(editor) {
     block.textContent = '';
     placeCursorAtEnd(block);
     const lang = codeMatch[1] || 'text';
-    document.execCommand('insertHTML', false, `<pre><code class="language-${escapeHtml(lang)}"></code></pre><p></p>`);
+    document.execCommand('insertHTML', false, `${createCodeWidgetHtml('', lang)}<p></p>`);
   }
 }
 
 function insertCodeBlockByLanguage() {
-  const language = dom.codeLangSelect.value || 'text';
+  const language = 'text';
   const fence = language === 'text' ? '```' : `\`\`\`${language}`;
   const markdown = `${fence}\n\n\`\`\`\n`;
 
@@ -1111,8 +2086,15 @@ function insertCodeBlockByLanguage() {
   }
 
   if (state.fallbackRichEditor) {
-    const codeHtml = `<pre><code class=\"language-${escapeHtml(language)}\"></code></pre><p></p>`;
+    const codeHtml = `${createCodeWidgetHtml('', language)}<p></p>`;
     fallbackInsertHtml(codeHtml);
+    bindCodeWidgets(state.fallbackRichEditor);
+    const page = state.pages[state.activeSlug];
+    if (page) {
+      page.markdown = fallbackHtmlToMarkdown(state.fallbackRichEditor);
+      markUnsavedChanges();
+      setStatus(str('statusChangedPage', { title: page.title }));
+    }
   }
 }
 
@@ -1133,9 +2115,9 @@ function buildMarkdownTable(rows, cols) {
 }
 
 function insertTableWithDialog() {
-  const rows = promptNumber(state.language === 'de' ? 'Anzahl Zeilen:' : 'Number of rows:', 3, 2, 20);
+  const rows = promptNumber(str('promptRows'), 3, 2, 20);
   if (rows === null) return;
-  const cols = promptNumber(state.language === 'de' ? 'Anzahl Spalten:' : 'Number of columns:', 3, 1, 12);
+  const cols = promptNumber(str('promptCols'), 3, 1, 12);
   if (cols === null) return;
 
   if (state.editor && typeof state.editor.commands.insertTable === 'function') {
@@ -1163,6 +2145,14 @@ function insertTableWithDialog() {
 }
 
 function runAppAction(action) {
+  if (action === 'enableEditing') return unlockPageEditing();
+
+  const allowedWhenLocked = new Set(['printPage', 'exportMarkdown']);
+  if (!state.editUnlocked && !allowedWhenLocked.has(action)) {
+    setStatus(str('statusReadOnly'));
+    return;
+  }
+
   if (action === 'newPage') {
     const title = window.prompt(str('promptPageTitle'), str('promptPageDefault'));
     if (!title) return;
@@ -1179,21 +2169,38 @@ function runAppAction(action) {
     return;
   }
   if (action === 'exportMarkdown') return exportCurrentPage();
+  if (action === 'printPage') return printCurrentPage();
   if (action === 'savePage') return saveActivePage();
   if (action === 'insertCodeBlock') return insertCodeBlockByLanguage();
   if (action === 'insertTable') return insertTableWithDialog();
 }
 
 function updateToolbarState() {
-  const buttons = dom.toolbar.querySelectorAll('button[data-cmd]');
-  for (const button of buttons) {
+  const allButtons = dom.toolbar.querySelectorAll('button');
+  const canEditSurface = Boolean(state.editor || state.fallbackRichEditor);
+
+  for (const button of allButtons) {
+    button.classList.remove('is-active');
+    const action = button.dataset.action;
     const cmd = button.dataset.cmd;
 
-    if (!state.editor) {
-      button.disabled = !state.fallbackRichEditor;
-      button.classList.remove('is-active');
+    if (!canEditSurface) {
+      button.disabled = action !== 'enableEditing';
       continue;
     }
+
+    if (!state.editUnlocked) {
+      button.disabled = !['enableEditing', 'printPage', 'exportMarkdown'].includes(action);
+      continue;
+    }
+
+    if (action === 'enableEditing') {
+      button.disabled = true;
+      continue;
+    }
+
+    button.disabled = false;
+    if (!state.editor || !cmd) continue;
 
     let active = false;
     if (cmd === 'h1') active = state.editor.isActive('heading', { level: 1 });
@@ -1208,14 +2215,14 @@ function updateToolbarState() {
     if (cmd === 'codeBlock') active = state.editor.isActive('codeBlock');
 
     button.classList.toggle('is-active', active);
-    button.disabled = false;
-
     if (cmd === 'undo') button.disabled = !state.editor.can().undo();
     if (cmd === 'redo') button.disabled = !state.editor.can().redo();
   }
 }
 
 function runFormatCommand(cmd) {
+  if (!ensureEditMode()) return;
+
   if (!state.editor && state.fallbackRichEditor) {
     focusFallbackEditor();
     if (cmd === 'h1') document.execCommand('formatBlock', false, 'h1');
@@ -1233,9 +2240,11 @@ function runFormatCommand(cmd) {
     const page = state.pages[state.activeSlug];
     if (page) {
       page.markdown = editorMarkdown();
+      markUnsavedChanges();
       setStatus(str('statusChangedPage', { title: page.title }));
     }
     updateToolbarState();
+    renderToc();
     return;
   }
 
@@ -1280,39 +2289,90 @@ function installToolbarHandlers() {
 }
 
 function installSettingsHandlers() {
-  const writeSettingsFromInputs = () => {
+  const writeSettingsFromInputs = (event) => {
+    const source = event?.target || null;
+    state.settings.themeMode = dom.themeModeInput.value === 'dark' ? 'dark' : 'light';
+    state.settings.paletteTarget = dom.paletteTargetInput.value === 'dark' ? 'dark' : 'light';
+    state.settings.autoSaveEnabled = Boolean(dom.autoSaveEnabledInput.checked);
+    state.settings.autoSaveMinutes = Math.max(0.25, Math.min(30, Number(dom.autoSaveMinutesInput.value) || 2));
+
+    if (source === dom.paletteTargetInput) {
+      syncSettingsInputs();
+      applySettings();
+      applyLanguage();
+      saveSettings();
+      restartAutoSave();
+      return;
+    }
+
+    const editPalette = getPalette(state.settings.paletteTarget);
+
     state.settings.appTitle = dom.appTitleInput.value;
     state.settings.appSubtitle = dom.appSubtitleInput.value;
-    state.settings.bg = dom.bgColorInput.value;
-    state.settings.bgMode = dom.bgModeInput.value === 'solid' ? 'solid' : 'gradient';
-    state.settings.bg2 = dom.bgColor2Input.value;
-    state.settings.panel = dom.panelColorInput.value;
-    state.settings.text = dom.textColorInput.value;
-    state.settings.accent = dom.accentColorInput.value;
-    state.settings.editorBg = dom.editorBgInput.value;
+    editPalette.bg = dom.bgColorInput.value;
+    editPalette.muted = dom.mutedColorInput.value;
+    editPalette.border = dom.borderColorInput.value;
+    editPalette.controlBg = dom.controlBgInput.value;
+    editPalette.controlText = dom.controlTextInput.value;
+    editPalette.bgMode = dom.bgModeInput.value === 'solid' ? 'solid' : 'gradient';
+    editPalette.bg2 = dom.bgColor2Input.value;
+    editPalette.panel = dom.panelColorInput.value;
+    editPalette.text = dom.textColorInput.value;
+    editPalette.accent = dom.accentColorInput.value;
+    editPalette.editorBg = dom.editorBgInput.value;
+    editPalette.codeBg = dom.codeBgInput.value;
+    editPalette.codePlain = dom.codePlainInput.value;
+    editPalette.codeKw = dom.codeKwInput.value;
+    editPalette.codeType = dom.codeTypeInput.value;
+    editPalette.codeVar = dom.codeVarInput.value;
+    editPalette.codeFn = dom.codeFnInput.value;
+    editPalette.codeStr = dom.codeStrInput.value;
+    editPalette.codeNum = dom.codeNumInput.value;
+    editPalette.codeCom = dom.codeComInput.value;
+    editPalette.codeOp = dom.codeOpInput.value;
     state.settings.fontFamily = dom.fontFamilyInput.value.trim() || DEFAULT_SETTINGS.fontFamily;
     state.settings.fontSize = Number(dom.fontSizeInput.value);
     state.settings.uiScale = Number(dom.uiScaleInput.value);
 
     dom.fontSizeLabel.textContent = String(state.settings.fontSize);
     dom.uiScaleLabel.textContent = String(state.settings.uiScale);
-    dom.bgColor2Wrap.style.display = state.settings.bgMode === 'gradient' ? '' : 'none';
+    dom.bgColor2Wrap.style.display = editPalette.bgMode === 'gradient' ? '' : 'none';
 
     applySettings();
+    applyLanguage();
     applyBranding();
     saveSettings();
+    restartAutoSave();
   };
 
   [
     dom.appTitleInput,
     dom.appSubtitleInput,
+    dom.themeModeInput,
+    dom.paletteTargetInput,
+    dom.autoSaveEnabledInput,
+    dom.autoSaveMinutesInput,
     dom.bgColorInput,
+    dom.mutedColorInput,
+    dom.borderColorInput,
+    dom.controlBgInput,
+    dom.controlTextInput,
     dom.bgModeInput,
     dom.bgColor2Input,
     dom.panelColorInput,
     dom.textColorInput,
     dom.accentColorInput,
     dom.editorBgInput,
+    dom.codeBgInput,
+    dom.codePlainInput,
+    dom.codeKwInput,
+    dom.codeTypeInput,
+    dom.codeVarInput,
+    dom.codeFnInput,
+    dom.codeStrInput,
+    dom.codeNumInput,
+    dom.codeComInput,
+    dom.codeOpInput,
     dom.fontFamilyInput,
     dom.fontSizeInput,
     dom.uiScaleInput
@@ -1322,11 +2382,13 @@ function installSettingsHandlers() {
   });
 
   dom.resetSettingsBtn.addEventListener('click', () => {
-    state.settings = { ...DEFAULT_SETTINGS };
+    state.settings = makeDefaultSettings();
     applySettings();
     syncSettingsInputs();
+    applyLanguage();
     applyBranding();
     saveSettings();
+    restartAutoSave();
     setStatus(str('statusSettingsReset'));
   });
 }
@@ -1337,9 +2399,25 @@ function installUIHandlers() {
   });
 
   dom.langSwitchBtn.addEventListener('click', () => {
-    state.language = state.language === 'de' ? 'en' : 'de';
+    const order = state.languageOrder.length > 0 ? state.languageOrder : ['de', 'en'];
+    const currentIdx = Math.max(0, order.indexOf(state.language));
+    const nextIdx = (currentIdx + 1) % order.length;
+    state.language = order[nextIdx];
     saveLanguage();
     applyLanguage();
+  });
+
+  dom.themeToggleBtn.addEventListener('click', () => {
+    state.settings.themeMode = state.settings.themeMode === 'dark' ? 'light' : 'dark';
+    dom.themeModeInput.value = state.settings.themeMode;
+    applySettings();
+    applyLanguage();
+    saveSettings();
+    setStatus(
+      str('statusThemeSwitched', {
+        mode: state.settings.themeMode === 'dark' ? str('themeDark') : str('themeLight')
+      })
+    );
   });
 
   dom.sidebarToggleBtn.addEventListener('click', () => {
@@ -1348,10 +2426,22 @@ function installUIHandlers() {
     saveSidebarCollapsed();
   });
 
+  dom.tocToggleBtn.addEventListener('click', () => {
+    state.tocCollapsed = !state.tocCollapsed;
+    applyTocState();
+    saveTocCollapsed();
+  });
+
   dom.importFileInput.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     importMarkdownFile(file);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!state.hasUnsavedChanges) return;
+    savePages();
+    state.hasUnsavedChanges = false;
   });
 }
 
@@ -1425,8 +2515,10 @@ async function createEditor() {
         const page = state.pages[state.activeSlug];
         if (!page) return;
         page.markdown = editorMarkdown();
+        markUnsavedChanges();
         setStatus(str('statusChangedPage', { title: page.title }));
         updateToolbarState();
+        renderToc();
       },
       onSelectionUpdate: () => updateToolbarState(),
       onFocus: () => updateToolbarState()
@@ -1443,7 +2535,7 @@ async function createEditor() {
 function createFallbackEditor() {
   const editor = document.createElement('div');
   editor.id = 'fallbackRichEditor';
-  editor.contentEditable = 'true';
+  editor.contentEditable = 'false';
   editor.spellcheck = true;
   editor.style.minHeight = '56vh';
   editor.style.outline = 'none';
@@ -1455,40 +2547,53 @@ function createFallbackEditor() {
   state.fallbackRichEditor = editor;
 
   editor.addEventListener('input', () => {
+    if (!state.editUnlocked) return;
     const page = state.pages[state.activeSlug];
     if (!page) return;
     page.markdown = fallbackHtmlToMarkdown(editor);
+    markUnsavedChanges();
     setStatus(str('statusChangedPage', { title: page.title }));
+    renderToc();
   });
 
   editor.addEventListener('keyup', (event) => {
+    if (!state.editUnlocked) return;
     if (event.key === ' ') {
       applyFallbackMarkdownShortcut(editor);
+      bindCodeWidgets(editor);
       const page = state.pages[state.activeSlug];
       if (!page) return;
       page.markdown = fallbackHtmlToMarkdown(editor);
+      markUnsavedChanges();
       setStatus(str('statusChangedPage', { title: page.title }));
+      renderToc();
     }
   });
 }
 
 async function initData() {
   state.settings = loadSettings();
-  state.language = loadLanguage();
+  const savedLanguage = loadLanguage();
+  const i18nResult = await loadLanguageResources();
+  state.language = savedLanguage;
+  if (!I18N[state.language]) {
+    state.language = state.languageOrder.includes('de') ? 'de' : state.languageOrder[0] || 'de';
+  }
   state.folderOpen = loadFolderOpen();
   state.sidebarCollapsed = loadSidebarCollapsed();
+  state.tocCollapsed = loadTocCollapsed();
 
   applySettings();
   syncSettingsInputs();
   applyLanguage();
-
-  const localPages = loadLocalPages();
-  if (localPages && Object.keys(localPages).length > 0) {
-    state.pages = localPages;
-  } else {
-    const bundled = await loadBundledPages();
-    state.pages = bundled || { ...FALLBACK_PAGES };
+  if (i18nResult.hadFailure) {
+    setStatus(str('statusI18nLoadFail'));
   }
+
+  const bundled = (await loadBundledPages()) || {};
+  const localPages = loadLocalPages() || {};
+  const mergedPages = mergePagesByFilePath(bundled, localPages);
+  state.pages = Object.keys(mergedPages).length > 0 ? mergedPages : { ...FALLBACK_PAGES };
 
   const savedSlug = localStorage.getItem(STORAGE_KEYS.activeSlug);
   if (savedSlug && state.pages[savedSlug]) {
@@ -1506,17 +2611,32 @@ async function start() {
 
   await initData();
   applySidebarState();
+  applyTocState();
   renderPageTree();
+  restartAutoSave();
 
-  setStatus(str('statusLoadingEditor'));
-  const editorOk = await createEditor();
+  let editorOk = false;
+  const isFileProtocol = window.location.protocol === 'file:';
+  if (isFileProtocol) {
+    createFallbackEditor();
+    setStatus(str('statusOfflineEditor'));
+  } else {
+    setStatus(str('statusLoadingEditor'));
+    editorOk = await createEditor();
+  }
   loadActivePageIntoEditor();
   updateToolbarState();
+  renderToc();
 
   if (editorOk) {
     setStatus(str('statusEditorReady'));
-  } else {
+  } else if (!isFileProtocol) {
     setStatus(str('statusEditorFail'));
+  }
+
+  const activePage = state.pages[state.activeSlug];
+  if (activePage) {
+    setStatus(`${str('statusLoadedPage', { title: activePage.title })} · ${str('statusReadOnly')}`);
   }
 }
 
